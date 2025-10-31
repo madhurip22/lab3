@@ -161,12 +161,11 @@
         const table = document.getElementsByTagName("table")[0];
         const btn = document.getElementsByTagName("button")[0];
 
-        async function loadGeoJSON() {
+        map.on('load', async () => {
             try {
                 const home = await fetch('assets/home.json').then(r => r.json());
                 const uw = await fetch('assets/uw.json').then(r => r.json());
 
-                // Add home data to table
                 home.features.forEach(feature => {
                     const row = table.insertRow(-1);
                     row.insertCell(0).innerHTML = feature.properties.name || 'N/A';
@@ -174,7 +173,6 @@
                     row.insertCell(2).innerHTML = feature.properties.description || 'N/A';
                 });
 
-                // Add UW data to table
                 uw.features.forEach(feature => {
                     const row = table.insertRow(-1);
                     row.insertCell(0).innerHTML = feature.properties.name || 'N/A';
@@ -184,14 +182,11 @@
 
                 console.log('Table populated with', table.rows.length - 1, 'features');
 
-            map.on('load', () => {
-                // Add home data source (polygon only)
                 map.addSource('home', { 
                     type: 'geojson', 
                     data: home 
                 });
 
-                // Add home area polygon layer
                 map.addLayer({
                     id: 'home-polygon',
                     type: 'fill',
@@ -202,7 +197,6 @@
                     }
                 });
 
-                // Add home area outline
                 map.addLayer({
                     id: 'home-outline',
                     type: 'line',
@@ -213,49 +207,31 @@
                     }
                 });
 
-                // Add UW data source (contains both line and polygon)
                 map.addSource('uw', { 
                     type: 'geojson', 
                     data: uw 
                 });
-
-                // Add campus path line layer
-                map.addLayer({
-                    id: 'campus-path',
-                    type: 'line',
-                    source: 'uw',
-                    filter: ['==', ['geometry-type'], 'LineString'],
-                    paint: {
-                        'line-color': '#00cc66',
-                        'line-width': 3
-                    }
-                });
                 
-                // Add UW campus polygon layer
                 map.addLayer({
                     id: 'uw-polygon',
                     type: 'fill',
                     source: 'uw',
-                    filter: ['==', ['geometry-type'], 'Polygon'],
                     paint: { 
                         'fill-color': '#0080ff', 
                         'fill-opacity': 0.5 
                     }
                 });
 
-                // Add outline for UW campus
                 map.addLayer({
                     id: 'uw-outline',
                     type: 'line',
                     source: 'uw',
-                    filter: ['==', ['geometry-type'], 'Polygon'],
                     paint: {
                         'line-color': '#0060cc',
                         'line-width': 2
                     }
                 });
 
-                // Fit map to show all features
                 const bounds = new mapboxgl.LngLatBounds();
                 home.features.forEach(feature => {
                     if (feature.geometry.type === 'Polygon') {
@@ -265,18 +241,14 @@
                 uw.features.forEach(feature => {
                     if (feature.geometry.type === 'Polygon') {
                         feature.geometry.coordinates[0].forEach(coord => bounds.extend(coord));
-                    } else if (feature.geometry.type === 'LineString') {
-                        feature.geometry.coordinates.forEach(coord => bounds.extend(coord));
                     }
                 });
                 map.fitBounds(bounds, { padding: 50 });
-            });
+
             } catch (error) {
                 console.error('Error loading GeoJSON:', error);
             }
-        }
-
-        loadGeoJSON();
+        });
 
         btn.addEventListener('click', () => {
             let switching = true;
@@ -295,7 +267,6 @@
             }
         });
 
-        // Add navigation controls
         map.addControl(new mapboxgl.NavigationControl());
     </script>
 </body>
