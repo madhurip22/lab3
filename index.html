@@ -8,8 +8,19 @@
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
     <style>
-        body { margin: 0; padding: 0; }
-        #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
         #side-panel {
             position: absolute;
             top: 0;
@@ -21,15 +32,33 @@
             overflow-y: auto;
             padding: 10px;
         }
-        @media (max-width: 1024px) { #side-panel { display: none; } }
+
+        @media (max-width: 1024px) {
+            #side-panel {
+                display: none;
+            }
+        }
+
         table {
             border-collapse: collapse;
+            border-spacing: 0;
             width: 100%;
             border: 1px solid #ddd;
         }
-        th, td { text-align: left; padding: 8px; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-        button { margin-bottom: 10px; }
+
+        th,
+        td {
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        button {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
@@ -41,8 +70,8 @@
         <table>
             <tr>
                 <th>Name</th>
-                <th>Description</th>
                 <th>Type</th>
+                <th>Description</th>
             </tr>
         </table>
     </div>
@@ -57,8 +86,8 @@
             zoom: 12
         });
 
-        const table = document.querySelector("table");
-        const btn = document.querySelector("button");
+        const table = document.getElementsByTagName("table")[0];
+        const btn = document.getElementsByTagName("button")[0];
 
         async function loadGeoJSON() {
             const home = await fetch('assets/home.json').then(r => r.json());
@@ -68,8 +97,8 @@
                 dataset.features.forEach(feature => {
                     const row = table.insertRow(-1);
                     row.insertCell(0).innerHTML = feature.properties.name || '';
-                    row.insertCell(1).innerHTML = feature.properties.description || '';
-                    row.insertCell(2).innerHTML = feature.geometry.type;
+                    row.insertCell(1).innerHTML = feature.properties.type || '';
+                    row.insertCell(2).innerHTML = feature.properties.description || '';
                 });
             });
 
@@ -100,8 +129,8 @@
                 switching = false;
                 const rows = table.rows;
                 for (let i = 1; i < rows.length - 1; i++) {
-                    let x = rows[i].cells[0].innerHTML.toLowerCase();
-                    let y = rows[i + 1].cells[0].innerHTML.toLowerCase();
+                    const x = rows[i].cells[0].innerHTML.toLowerCase();
+                    const y = rows[i + 1].cells[0].innerHTML.toLowerCase();
                     if (x > y) {
                         rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
                         switching = true;
