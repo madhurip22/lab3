@@ -1,98 +1,138 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
-    <title>WA Polygon and Line</title>
-    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <title>Lab 3</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
     <style>
-        body { margin: 0; padding: 0; }
-        #container { display: flex; height: 100vh; }
-        #table-panel { flex-basis: 400px; overflow-y: auto; padding: 10px; }
-        #map { flex-grow: 1; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        #map {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+        }
+        #side-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 400px;
+            max-height: 90%;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            overflow-y: auto;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        button {
+            margin-bottom: 10px;
+        }
+        @media screen and (max-width: 1024px) {
+            #side-panel {
+                display: none;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <div id="container">
-        <div id="table-panel">
-            <h2>GeoJSON Features</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Coordinates</th>
-                    </tr>
-                </thead>
-                <tbody id="feature-table"></tbody>
-            </table>
-        </div>
-        <div id="map"></div>
+    <div id="map"></div>
+    <div id="side-panel">
+        <h2>Map Features</h2>
+        <button onclick="sortTable()">Sort by ID</button>
+        <table>
+            <tr>
+                <th>id</th>
+                <th>type</th>
+            </tr>
+        </table>
     </div>
 
     <script>
         mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
         const map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: [-122.32, 47.63],
-            zoom: 9
+            style: 'mapbox://styles/mapbox/light-v11',
+            center: [-122.3, 47.6],
+            zoom: 10
         });
 
-        async function loadGeoJSON() {
-            const polygonData = await fetch('assets/uw.json').then(res => res.json());
-            const lineData = await fetch('assets/home.json').then(res => res.json());
+        async function loadData() {
+            const responseUW = await fetch('assets/uw.json');
+            const uwData = await responseUW.json();
+
+            const responseHome = await fetch('assets/home.json');
+            const homeData = await responseHome.json();
+
+            const table = document.querySelector("table");
+
+            uwData.features.forEach((feature, i) => {
+                const row = table.insertRow(-1);
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+                cell1.innerText = feature.properties.id || `UW-${i+1}`;
+                cell2.innerText = feature.geometry.type;
+            });
+
+            homeData.features.forEach((feature, i) => {
+                const row = table.insertRow(-1);
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+                cell1.innerText = feature.properties.id || `HOME-${i+1}`;
+                cell2.innerText = feature.geometry.type;
+            });
 
             map.on('load', () => {
-                map.addSource('polygon', { type: 'geojson', data: polygonData });
+                map.addSource('uw', { type: 'geojson', data: uwData });
                 map.addLayer({
-                    id: 'polygon-layer',
+                    id: 'uw-layer',
                     type: 'fill',
-                    source: 'polygon',
-                    paint: { 'fill-color': '#0080ff', 'fill-opacity': 0.5 }
+                    source: 'uw',
+                    paint: {
+                        'fill-color': '#00ff00',
+                        'fill-opacity': 0.4
+                    }
                 });
+
+                map.addSource('home', { type: 'geojson', data: homeData });
                 map.addLayer({
-                    id: 'polygon-border',
+                    id: 'home-layer',
                     type: 'line',
-                    source: 'polygon',
-                    paint: { 'line-color': '#0000ff', 'line-width': 2 }
+                    source: 'home',
+                    paint: {
+                        'line-color': '#ff0000',
+                        'line-width': 3
+                    }
                 });
-
-                map.addSource('line', { type: 'geojson', data: lineData });
-                map.addLayer({
-                    id: 'line-layer',
-                    type: 'line',
-                    source: 'line',
-                    paint: { 'line-color': '#ff0000', 'line-width': 3 }
-                });
-
-                const tableBody = document.getElementById('feature-table');
-                [polygonData.features[0], lineData.features[0]].forEach(f => {
-                    const row = document.createElement('tr');
-                    const typeCell = document.createElement('td');
-                    typeCell.textContent = f.geometry.type;
-                    const coordCell = document.createElement('td');
-                    coordCell.textContent = JSON.stringify(f.geometry.coordinates);
-                    row.appendChild(typeCell);
-                    row.appendChild(coordCell);
-                    tableBody.appendChild(row);
-                });
-
-                const allCoords = [
-                    ...polygonData.features[0].geometry.coordinates[0],
-                    ...lineData.features[0].geometry.coordinates
-                ];
-                const bounds = allCoords.reduce((b, coord) => b.extend(coord), new mapboxgl.LngLatBounds(allCoords[0], allCoords[0]));
-                map.fitBounds(bounds, { padding: 20 });
             });
         }
 
-        loadGeoJSON();
+        loadData();
+
+        function sortTable() {
+            const table = document.querySelector("table");
+            let rows = Array.from(table.rows).slice(1);
+            rows.sort((a, b) => a.cells[0].innerText.localeCompare(b.cells[0].innerText));
+            rows.forEach(row => table.appendChild(row));
+        }
     </script>
 </body>
+
 </html>
