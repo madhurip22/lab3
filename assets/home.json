@@ -1,4 +1,7 @@
 {
+  "type": "FeatureCollection",
+  "features": [
+    {
       "type": "Feature",
       "properties": {},
       "geometry": {
@@ -39,7 +42,8 @@
           ]
         ],
         "type": "Polygon"
-      }
+      },
+      "id": 1
     }
   ]
 }
