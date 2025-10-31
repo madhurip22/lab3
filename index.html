@@ -66,12 +66,12 @@
     <div id="map"></div>
     <div id="side-panel">
         <h2>Map Features</h2>
-        <button>Sort by Name</button>
+        <button>Sort by Magnitude</button>
         <table>
             <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Description</th>
+                <th>id</th>
+                <th>magnitude</th>
+                <th>timestamp</th>
             </tr>
         </table>
     </div>
@@ -96,9 +96,9 @@
             [home, uw].forEach(dataset => {
                 dataset.features.forEach(feature => {
                     const row = table.insertRow(-1);
-                    row.insertCell(0).innerHTML = feature.properties.name || '';
-                    row.insertCell(1).innerHTML = feature.properties.type || '';
-                    row.insertCell(2).innerHTML = feature.properties.description || '';
+                    row.insertCell(0).innerHTML = feature.properties.id || '';
+                    row.insertCell(1).innerHTML = feature.properties.magnitude || '';
+                    row.insertCell(2).innerHTML = feature.properties.timestamp || '';
                 });
             });
 
@@ -129,8 +129,8 @@
                 switching = false;
                 const rows = table.rows;
                 for (let i = 1; i < rows.length - 1; i++) {
-                    const x = rows[i].cells[0].innerHTML.toLowerCase();
-                    const y = rows[i + 1].cells[0].innerHTML.toLowerCase();
+                    const x = parseFloat(rows[i].cells[1].innerHTML) || 0;
+                    const y = parseFloat(rows[i + 1].cells[1].innerHTML) || 0;
                     if (x > y) {
                         rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
                         switching = true;
