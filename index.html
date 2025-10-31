@@ -213,16 +213,30 @@
                     }
                 });
 
-                // Add UW campus as a polygon
+                // Add UW data source (contains both line and polygon)
                 map.addSource('uw', { 
                     type: 'geojson', 
                     data: uw 
                 });
+
+                // Add campus path line layer
+                map.addLayer({
+                    id: 'campus-path',
+                    type: 'line',
+                    source: 'uw',
+                    filter: ['==', ['geometry-type'], 'LineString'],
+                    paint: {
+                        'line-color': '#00cc66',
+                        'line-width': 3
+                    }
+                });
                 
+                // Add UW campus polygon layer
                 map.addLayer({
                     id: 'uw-polygon',
                     type: 'fill',
                     source: 'uw',
+                    filter: ['==', ['geometry-type'], 'Polygon'],
                     paint: { 
                         'fill-color': '#0080ff', 
                         'fill-opacity': 0.5 
@@ -234,6 +248,7 @@
                     id: 'uw-outline',
                     type: 'line',
                     source: 'uw',
+                    filter: ['==', ['geometry-type'], 'Polygon'],
                     paint: {
                         'line-color': '#0060cc',
                         'line-width': 2
@@ -250,10 +265,15 @@
                 uw.features.forEach(feature => {
                     if (feature.geometry.type === 'Polygon') {
                         feature.geometry.coordinates[0].forEach(coord => bounds.extend(coord));
+                    } else if (feature.geometry.type === 'LineString') {
+                        feature.geometry.coordinates.forEach(coord => bounds.extend(coord));
                     }
                 });
                 map.fitBounds(bounds, { padding: 50 });
             });
+            } catch (error) {
+                console.error('Error loading GeoJSON:', error);
+            }
         }
 
         loadGeoJSON();
